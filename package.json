@@ -27,6 +27,7 @@
   ],
   "dependencies": {
     "homebridge-lib": "^6.6.1",
+    "qrcode-terminal": "^0.12.0",
     "telegram": "^2.19.6"
   },
   "devDependencies": {
