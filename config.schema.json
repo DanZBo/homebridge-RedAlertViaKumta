@@ -1,16 +1,43 @@
 {
-  "pluginAlias": "ExampleHomebridgePlugin",
+  "pluginAlias": "RedAlertViaKumta",
   "pluginType": "platform",
   "singular": true,
   "schema": {
     "type": "object",
     "properties": {
       "name": {
-        "title": "Name",
+        "title": "RedAlertViaKumta",
         "type": "string",
         "required": true,
-        "default": "Example Dynamic Platform"
-      }
+        "default": "RedAlertViaKumta"
+      },
+      "city":{
+        "title": "City",
+        "type": "string",
+        "required": true,
+        "default": ""
+      },
+   
+        "tg_api_id": {
+          "title": "Telegram API Id",
+          "type": "string",
+          "required": true,
+          "default": ""
+        },
+        "tg_api_hash":{
+          "title": "Telegram API Hash",
+          "type": "string",
+          "required": true,
+          "default": ""
+        },
+        "tg_listen_channel": {
+          "title": "Alert channel",
+          "type": "string",
+          "required": true,
+          "default": "CumtaAlertsChannel"
+        }
+  
     }
+
   }
 }
