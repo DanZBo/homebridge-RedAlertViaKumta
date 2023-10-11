@@ -6,19 +6,19 @@
     "type": "object",
     "properties": {
       "cities":{
-        "title": "Сities (separate by comma)",
+        "title": "Сities (separate by comma, written in Hebrew)",
         "type": "string",
         "required": true,
         "default": ""
       },
         "tg_api_id": {
-          "title": "Telegram API Id",
+          "title": "Telegram API Id (Please read readme file from git repository for more information)",
           "type": "string",
           "required": true,
           "default": ""
         },
         "tg_api_hash":{
-          "title": "Telegram API Hash",
+          "title": "Telegram API Hash (Please read readme file from git repository for more information)",
           "type": "string",
           "required": true,
           "default": ""
