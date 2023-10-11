@@ -1,6 +1,6 @@
 # homebridge-RedAlertViaKumta
 
-This plugin is set as a motion sensor that turns on when there is an alarm in the configured city from ```KumtaAlertsChannel``` telegram channel (it's default but you can configure different channel).
+This plugin is set as a motion sensor that turns on when there is an alarm in the configured city from ```KumtaAlertsChannel``` telegram channel.
 With the sensor you could make automations to suit your needs
 
 
