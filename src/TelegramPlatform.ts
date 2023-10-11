@@ -14,19 +14,23 @@ export class TelegramPlatform implements DynamicPlatformPlugin {
   public telegramClient: any;
   public telegramSessionAccessoryUUID: string;
   public stringSession: any;
+  public tg_listen_channel: string;
+  public cities: Array<string>;
+  public name: string;
   constructor(
     public readonly log: Logger,
     public readonly config: PlatformConfig,
     public readonly api: API,
   ) {
-    this.services={};
-
-    this.log.debug('Finished initializing platform:', this.config.name);
+    this.tg_listen_channel = 'CumtaAlertsChannel';
+    this.name = 'RedAlertViaKumta';
+    this.log.debug('Finished initializing platform:', this.name);
     this.telegramSessionAccessoryUUID =this.api.hap.uuid.generate('tgSession');
-
+    this.cities = this.config.cities.replace(/\s/g, '').split(',');
     this.telegramClient;
+
     this.api.on('didFinishLaunching', () => {
-      log.debug('Executed didFinishLaunching callback');
+      this.log.debug('Executed didFinishLaunching callback');
       this.discoverDevices();
     });
 
@@ -63,12 +67,12 @@ export class TelegramPlatform implements DynamicPlatformPlugin {
         tgSessionAccessory.context.tgSession =this.stringSession.save();
       }
     }
-
+    this.log.info('CONNECT TO TELEGRAM SUCCESS');
     await this.hearbeatTelegramSession();
     this.telegramClient.addEventHandler(this.alertHandler.bind(this),
       new NewMessage({
         incoming: true,
-        fromUsers:[this.config.tg_listen_channel],
+        fromUsers:[this.tg_listen_channel],
       }),
     );
     this.telegramClient.autorized = true;
@@ -82,7 +86,6 @@ export class TelegramPlatform implements DynamicPlatformPlugin {
   configureAccessory(accessory: PlatformAccessory) {
     this.log.info('Loading accessory from cache:', accessory.displayName);
     if(accessory.UUID !== this.telegramSessionAccessoryUUID){
-      this.services[accessory.displayName] = accessory.getService(this.api.hap.Service.MotionSensor);
     accessory.getService(this.api.hap.Service.MotionSensor)!.updateCharacteristic(this.Characteristic.MotionDetected, 0);
     }
 
@@ -90,13 +93,16 @@ export class TelegramPlatform implements DynamicPlatformPlugin {
   }
 
   discoverDevices() {
-    const uuid = this.api.hap.uuid.generate(this.config.city);
-    if (!this.accessories.find(accessory => accessory.UUID === uuid)) {
-      const accessory = new this.api.platformAccessory(this.config.city, uuid);
-      accessory.addService(this.api.hap.Service.MotionSensor, `${this.config.city} alerts`);
-      this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
+    for (let i=0; i< this.cities.length;i++){
+      const city = this.cities[i];
+      const uuid = this.api.hap.uuid.generate(`${city}_${this.name}`);
+      if (!this.accessories.find(accessory => accessory.UUID === uuid)) {
+        const accessory = new this.api.platformAccessory(city, uuid);
+        accessory.addService(this.api.hap.Service.MotionSensor, `${city} alerts`);
+        this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
 
-      this.configureAccessory(accessory);
+        this.configureAccessory(accessory);
+      }
     }
     if (!this.accessories.find(accessory => accessory.UUID === this.telegramSessionAccessoryUUID)) {
       const telegramSessionAccessory = new this.api.platformAccessory('tgSession', this.telegramSessionAccessoryUUID);
@@ -112,14 +118,18 @@ export class TelegramPlatform implements DynamicPlatformPlugin {
 
   alertHandler(event){
     const message = event.message.text;
-    if(message.includes(this.config.city)) {
-      const uuid = this.api.hap.uuid.generate(this.config.city);
-      const accessory = this.accessories.find(accessory => accessory.UUID === uuid);
+    for (let i=0; i< this.cities.length;i++){
+      const city = this.cities[i];
+
+      if(message.includes(city)) {
+        const uuid = this.api.hap.uuid.generate(`${city}_${this.name}`);
+        const accessory = this.accessories.find(accessory => accessory.UUID === uuid);
       accessory?.getService(this.api.hap.Service.MotionSensor)!.updateCharacteristic(this.Characteristic.MotionDetected, 1);
 
       setTimeout(()=>{
         accessory?.getService(this.api.hap.Service.MotionSensor)!.updateCharacteristic(this.Characteristic.MotionDetected, 0);
       }, 30000);
+      }
     }
   }
 }

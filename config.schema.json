@@ -5,19 +5,12 @@
   "schema": {
     "type": "object",
     "properties": {
-      "name": {
-        "title": "RedAlertViaKumta",
-        "type": "string",
-        "required": true,
-        "default": "RedAlertViaKumta"
-      },
-      "city":{
-        "title": "City",
+      "cities":{
+        "title": "Сities (separate by comma)",
         "type": "string",
         "required": true,
         "default": ""
       },
-   
         "tg_api_id": {
           "title": "Telegram API Id",
           "type": "string",
@@ -29,12 +22,6 @@
           "type": "string",
           "required": true,
           "default": ""
-        },
-        "tg_listen_channel": {
-          "title": "Alert channel",
-          "type": "string",
-          "required": true,
-          "default": "CumtaAlertsChannel"
         }
   
     }
