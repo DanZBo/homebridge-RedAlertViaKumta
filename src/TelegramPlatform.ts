@@ -26,7 +26,9 @@ export class TelegramPlatform implements DynamicPlatformPlugin {
     this.name = 'RedAlertViaKumta';
     this.log.debug('Finished initializing platform:', this.name);
     this.telegramSessionAccessoryUUID =this.api.hap.uuid.generate('tgSession');
-    this.cities = this.config.cities.replace(/\s/g, '').split(',');
+    this.cities = this.config.cities.split(',').map((v:string)=>{
+      return v.replace(/^\s+|\s+$/g, '');
+    });
     this.telegramClient;
 
     this.api.on('didFinishLaunching', () => {
@@ -43,13 +45,17 @@ export class TelegramPlatform implements DynamicPlatformPlugin {
     const tgSession = (!tgSessionAccessory)?'':tgSessionAccessory.context.tgSession || '';
     this.stringSession = new sessions.StringSession(tgSession);
     this.telegramClient = new TelegramClient(this.stringSession, Number(this.config.tg_api_id), this.config.tg_api_hash, {});
+    this.updateTelegramAccessoryState();
 
     await this.telegramClient.connect();
+
     if (!(await this.telegramClient.checkAuthorization())) {
       await this.telegramClient.signInUserWithQrCode(
         {apiId: Number(this.config.tg_api_id), apiHash:this.config.tg_api_hash },
         {
-          onError: (err) => this.log.info(`LOGIN ERROR => ${err}`),
+          onError: (err) => {
+            this.log.error(`LOGIN ERROR => ${err}`);
+          },
           qrCode: async (qrCode) => {
             this.log.info('TELEGRAM QR CODE');
             this.log.info(
@@ -67,20 +73,21 @@ export class TelegramPlatform implements DynamicPlatformPlugin {
         tgSessionAccessory.context.tgSession =this.stringSession.save();
       }
     }
+
     this.log.info('CONNECT TO TELEGRAM SUCCESS');
     await this.hearbeatTelegramSession();
+    setInterval(this.updateTelegramAccessoryState.bind(this), 3000);
     this.telegramClient.addEventHandler(this.alertHandler.bind(this),
       new NewMessage({
         incoming: true,
         fromUsers:[this.tg_listen_channel],
       }),
     );
-    this.telegramClient.autorized = true;
   }
 
   async hearbeatTelegramSession() {
     setTimeout(this.hearbeatTelegramSession.bind(this), 60000);
-    return await this.telegramClient.getMe();
+    return this.telegramClient.getMe();
   }
 
   configureAccessory(accessory: PlatformAccessory) {
@@ -104,13 +111,20 @@ export class TelegramPlatform implements DynamicPlatformPlugin {
         this.configureAccessory(accessory);
       }
     }
-    if (!this.accessories.find(accessory => accessory.UUID === this.telegramSessionAccessoryUUID)) {
-      const telegramSessionAccessory = new this.api.platformAccessory('tgSession', this.telegramSessionAccessoryUUID);
+    let telegramSessionAccessory = this.accessories.find(accessory => accessory.UUID === this.telegramSessionAccessoryUUID);
+    if (!telegramSessionAccessory) {
+      telegramSessionAccessory = new this.api.platformAccessory('Telegram Connection', this.telegramSessionAccessoryUUID);
+      telegramSessionAccessory.addService(this.Service.Outlet, 'Telegram connection state');
       this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [telegramSessionAccessory]);
       this.accessories.push(telegramSessionAccessory);
+    }else{
+      if(!telegramSessionAccessory.getService(this.Service.Outlet)){
+        telegramSessionAccessory.addService(this.Service.Outlet, 'Telegram connection state');
+      }
     }
     this.connect().catch((error)=>{
       this.log.error(error);
+      this.updateTelegramAccessoryState();
     });
 
   }
@@ -131,5 +145,16 @@ export class TelegramPlatform implements DynamicPlatformPlugin {
       }, 30000);
       }
     }
+  }
+
+  updateTelegramAccessoryState(){
+    let state =0;
+    const tgSessionAccessory = this.accessories.find((v)=>{
+      return v.UUID===this.telegramSessionAccessoryUUID;
+    });
+    if(this.telegramClient.connected){
+      state =1;
+    }
+    tgSessionAccessory?.getService(this.Service.Outlet)!.updateCharacteristic(this.Characteristic.On, state);
   }
 }
