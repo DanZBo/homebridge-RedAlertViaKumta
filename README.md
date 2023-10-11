@@ -1,4 +1,35 @@
+
+
+התקנה:
+
+שלב ראשון: 
+התקנת התוסף בממשק ה Homebridge 
+
+דרך ראשונה, מומלצת: לחפש את ה Plug-in לפי 'Kumta' בממשק Homebridge
+
+דרך שנייה, ידנית ע״י הרצת הפקודה: ```npm install -g homebridge-red-alert-via-kumta```
+
+במידה ו HomeBridge רץ בתוך Docker יש להריץ את הפקודה הבאה בתוך הדוקר :  ```docker exec -it _container_id_ bash```
+
+טלגרם:
+
+תנאים מקדימים:
+
+- חשבון טלגרם ללא 2FA
+- להיות מנוי לערוץ הטלגרם הרלוונטי
+- להוציא API HASH & ID לחשבון הטלגרם שלך.
+
+סרטון הדגמה ליצירת API HASH & ID בטלגרם: https://www.youtube.com/watch?v=8naENmP3rg4
+
+
+הגדרות:
+
+יש למלא את שמות הערים כפי שמגיעות מפיקוד העורף, בעברית, עם פסיקים: למשל: ``` תל אביב, הרצליה, חיפה```
+
+
+
 # homebridge-RedAlertViaKumta
+
 
 This plugin is set as a motion sensor that turns on when there is an alarm in the configured city from ```KumtaAlertsChannel``` telegram channel.
 With the sensor you could make automations to suit your needs
@@ -25,6 +56,8 @@ Prerequisites:
 
 Telegram account WITHOUT 2FA.
 
+Telegram HASH ID & KEY -> Short howto -> https://www.youtube.com/watch?v=8naENmP3rg4
+
 To be subscribed to Kumta Telegram Channel using your telegram account: ```https://t.me/CumtaAlertsChannel```
 
 
@@ -39,7 +72,7 @@ To be subscribed to Kumta Telegram Channel using your telegram account: ```https
 
 See the sample-config.file to see an example of working accessory. Following, all available options are explained:
 
- * ```cities``` The name of the cities separated by comma (for example: city1, city2).
+ * ```cities``` The name of the cities separated by comma (for example: city1, city2). IN HEBREW! 
  * ```tg_api_id``` Telegram client api id.
  * ```tg_api_hash``` Telegram client api hash.
 
