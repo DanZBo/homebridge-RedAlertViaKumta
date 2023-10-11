@@ -39,8 +39,7 @@ To be subscribed to Kumta Telegram Channel using your telegram account: ```https
 
 See the sample-config.file to see an example of working accessory. Following, all available options are explained:
 
- * ```name``` Accessory name.
- * ```city``` The name of the city (exactly as it says in the pikud horef's site).
+ * ```cities``` The name of the cities separated by comma (for example: city1, city2).
  * ```tg_api_id``` Telegram client api id (see 3 from installation).
  * ```tg_api_hash``` Telegram client api hash (see 3 from installation).
- * ```tg_listen_channel``` Telegram channel name or id your should be subscribed to this channel (default is ```CumtaAlertsChannel```).
+
