@@ -2,29 +2,31 @@
   "pluginAlias": "RedAlertViaKumta",
   "pluginType": "platform",
   "singular": true,
+  "headerDisplay": "חשוב מאוד לקרוא את תנאי השימוש!\n\nהוראות שימוש והגבלות:\n\nהתוסף איננו תוסף רשמי של פיקוד העורף או מערכת הבטחון.\n\nהתוסף תלוי בתקינות מערכות צד ג כגון מערכת כומתה ואפליקציית הטלגרם ולכן יתכנו שיבושים ואו עיקובים בקבלת התרעות.\n\nבכל מקרה יש להמשיך להשתמש במקביל לתוסף באמצעיים הרשמיים של מערכת הבטחון בישראל מכיוון שיכול להיות כשל בתוכנה.\n\nDisclaimer - very important to read!\n\nInstructions for use and restrictions:\n\n1.The supplement is not an official supplement of the Home Front Command or the security system in Israel.\n\n2.The add-on depends on the integrity of third-party systems such as the beret system and the Telegram application, so there may be disruptions or delays in receiving alerts.\n\n3.In any case, you must continue to use the official means of the security system in Israel at the same time as the add-on because there could be a software failure.",
   "schema": {
     "type": "object",
     "properties": {
-      "cities":{
+      "cities": {
         "title": "Сities (separate by comma, written in Hebrew)",
         "type": "string",
         "required": true,
-        "default": ""
+        "default": "אזור_פיקוד_העורף_בעברית"
       },
         "tg_api_id": {
           "title": "Telegram API Id (Please read readme file from git repository for more information)",
           "type": "string",
           "required": true,
-          "default": ""
+          "default": "YOUR_API_ID"
         },
         "tg_api_hash":{
           "title": "Telegram API Hash (Please read readme file from git repository for more information)",
           "type": "string",
           "required": true,
-          "default": ""
-        }
-  
+          "default": "YOUR_API_HASH"
+      }
     }
 
   }
 }
+
+
