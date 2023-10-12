@@ -177,12 +177,12 @@ export class TelegramPlatform implements DynamicPlatformPlugin {
     }
   }
 
-  updateTelegramAccessoryState(){
+  async updateTelegramAccessoryState(){
     let state =0;
     const tgSessionAccessory = this.accessories.find((v)=>{
       return v.UUID===this.telegramSessionAccessoryUUID;
     });
-    if(this.telegramClient && this.telegramClient.connected){
+    if(this.telegramClient && this.telegramClient.connected && (await this.telegramClient.checkAuthorization())){
       state =1;
     }
     tgSessionAccessory?.getService(this.Service.Outlet)!.updateCharacteristic(this.Characteristic.On, state);
