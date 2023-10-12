@@ -3,7 +3,7 @@
 This plugin is set as a motion sensor that turns on when there is an alarm in the configured city from ```KumtaAlertsChannel``` telegram channel.
 With the sensor you could make automations to suit your needs
 
-## **הוראות שימוש והגבלות:**
+## **הוראות שימוש והגבלות: יש לקרוא בעיון חשוב מאוד.**
 
 התוסף איננו תוסף רשמי של פיקוד העורף או מערכת הבטחון.
 התוסף תלוי בתקינות מערכות צד ג כגון מערכת כומתה ואפליקציית הטלגרם ולכן יתכנו שיבושים ואו עיקובים בקבלת התרעות.
