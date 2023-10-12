@@ -1,3 +1,21 @@
+# homebridge-RedAlertViaKumta
+
+This plugin is set as a motion sensor that turns on when there is an alarm in the configured city from ```KumtaAlertsChannel``` telegram channel.
+With the sensor you could make automations to suit your needs
+
+## **הוראות שימוש והגבלות:**
+
+התוסף איננו תוסף רשמי של פיקוד העורף או מערכת הבטחון.
+התוסף תלוי בתקינות מערכות צד ג כגון מערכת כומתה ואפליקציית הטלגרם ולכן יתכנו שיבושים ואו עיקובים בקבלת התרעות.
+בכל מקרה יש להמשיך להשתמש במקביל לתוסף באמצעיים הרשמיים של מערכת הבטחון בישראל מכיוון שיכול להיות כשל בתוכנה.
+
+## **Disclaimer - very important to read!**
+
+Instructions for use and restrictions:
+
+1. The supplement is not an official supplement of the Home Front Command or the security system in Israel.
+2. The add-on depends on the integrity of third-party systems such as the beret system and the Telegram application, so there may be disruptions or delays in receiving alerts.
+3. In any case, you must continue to use the official means of the security system in Israel at the same time as the add-on because there could be a software failure.
 
 <b><u><br>
 התקנה:
@@ -48,11 +66,7 @@
 
 
 
-# homebridge-RedAlertViaKumta
 
-
-This plugin is set as a motion sensor that turns on when there is an alarm in the configured city from ```KumtaAlertsChannel``` telegram channel.
-With the sensor you could make automations to suit your needs
 
 
 ### Plug In Installation
