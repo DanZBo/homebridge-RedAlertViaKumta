@@ -77,22 +77,20 @@ export class TelegramPlatform implements DynamicPlatformPlugin {
       if (!(await this.telegramClient.checkAuthorization())) {
         await this.telegramClient.signInUserWithQrCode(
           {apiId: Number(this.config.tg_api_id), apiHash:this.config.tg_api_hash },
-          { password: async () => {
-            return 'qriyr53XPGflVhFxJSIdLyIBQAXS';
-          },
-          onError: (err) => {
-            this.log.error(`LOGIN ERROR => ${err}`);
-          },
-          qrCode: async (qrCode) => {
-            this.log.info('TELEGRAM QR CODE');
-            qrcode.generate(
-              `tg://login?token=${qrCode.token.toString('base64url')}`,
-              {
-                small: true,
-              },
-            );
+          {
+            onError: (err) => {
+              this.log.error(`LOGIN ERROR => ${err}`);
+            },
+            qrCode: async (qrCode) => {
+              this.log.info('TELEGRAM QR CODE');
+              qrcode.generate(
+                `tg://login?token=${qrCode.token.toString('base64url')}`,
+                {
+                  small: true,
+                },
+              );
             //  this.log.info(smallQr);
-          },
+            },
           },
         );
         if(tgSessionAccessory){
