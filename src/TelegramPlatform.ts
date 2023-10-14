@@ -73,6 +73,9 @@ export class TelegramPlatform implements DynamicPlatformPlugin {
       return v.replace(/^\s+|\s+$/g, '');
     });
 
+    process.on('unhandledRejection', (reason)=>{
+      this.log.error(`${reason}`);
+    });
     this.api.on('didFinishLaunching', () => {
       this.log.debug('Executed didFinishLaunching callback');
       this.discoverDevices();
@@ -111,7 +114,6 @@ export class TelegramPlatform implements DynamicPlatformPlugin {
                   small: true,
                 },
               );
-            //  this.log.info(smallQr);
             },
           },
         );
@@ -121,6 +123,7 @@ export class TelegramPlatform implements DynamicPlatformPlugin {
       }
 
       this.log.info('CONNECT TO TELEGRAM SUCCESS');
+      await this.checkUserSubscribtionChannels();
       await this.hearbeatTelegramSession();
       setInterval(this.updateTelegramAccessoryState.bind(this), 3000);
       this.telegramClient.addEventHandler(this.alertHandler.bind(this),
@@ -132,6 +135,23 @@ export class TelegramPlatform implements DynamicPlatformPlugin {
     } catch (error) {
       this.log.error(`${error}`);
       return;
+    }
+  }
+
+  async checkUserSubscribtionChannels(){
+    try {
+      const dialogsList = (await this.telegramClient.getDialogs()).map((v)=>v.entity.username);
+      for(let i=0;i<this.tg_listen_channel.length;i++){
+        if(dialogsList.includes(this.tg_listen_channel[i])){
+          this.log.info(`https://t.me/${this.tg_listen_channel[i]} subscribtion virified`);
+        }else{
+          this.log.info(`PLEASE SUBSCRIBE TO https://t.me/${this.tg_listen_channel[i]} FOR GETTING ALERTS`);
+        }
+      }
+
+    } catch (error) {
+      this.log.error(`${error}`);
+
     }
   }
 
