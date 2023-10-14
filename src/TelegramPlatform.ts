@@ -4,6 +4,10 @@ import { TelegramClient, sessions } from 'telegram';
 import qrcode from 'qrcode-terminal';
 import {NewMessage} from 'telegram/events/index.js';
 
+interface ChannelTypes{
+  [key: string]: string | undefined;
+}
+
 export class TelegramPlatform implements DynamicPlatformPlugin {
   public readonly Service: typeof Service = this.api.hap.Service;
   public readonly Characteristic: typeof Characteristic = this.api.hap.Characteristic;
@@ -13,9 +17,10 @@ export class TelegramPlatform implements DynamicPlatformPlugin {
   public telegramClient: any;
   public telegramSessionAccessoryUUID: string ;
   public stringSession: any;
-  public tg_listen_channel: string ;
+  public tg_listen_channel: Array<string> ;
   public cities: Array<string> ;
   public name: string ;
+  public channel_types:ChannelTypes;
   constructor(
     public readonly log: Logger,
     public readonly config: PlatformConfig,
@@ -24,12 +29,12 @@ export class TelegramPlatform implements DynamicPlatformPlugin {
     this.name = 'RedAlertViaKumta';
     this.log.debug('Finished initializing platform:', this.name);
 
-    this.tg_listen_channel = 'CumtaAlertsChannel';
+    this.tg_listen_channel = [];
     this.telegramSessionAccessoryUUID =this.api.hap.uuid.generate('tgSession');
     this.cities = [];
     this.telegramClient;
-
-    if (!this.config.cities || !this.config.tg_api_id || !this.config.tg_api_hash ) {
+    this.channel_types = { };
+    if (!this.config.cities || !this.config.tg_api_id || !this.config.tg_api_hash) {
       this.log.info(
         'No options found in configuration file, disabling plugin.',
       );
@@ -47,6 +52,23 @@ export class TelegramPlatform implements DynamicPlatformPlugin {
       );
       return;
     }
+    if(this.config.rockets_alerts_channel && this.config.rockets_alerts_channel!==''){
+      const channelName = this.config.rockets_alerts_channel.replace('https://t.me/', '');
+      this.tg_listen_channel.push(this.config.rockets_alerts_channel.replace('https://t.me/', ''));
+      this.channel_types[channelName] = 'rockets';
+    }
+    if(this.config.terror_alerts_channel && this.config.terror_alerts_channel!==''){
+      const channelName = this.config.terror_alerts_channel.replace('https://t.me/', '');
+      this.tg_listen_channel.push(this.config.terror_alerts_channel.replace('https://t.me/', ''));
+      this.channel_types[channelName] = 'terror';
+    }
+    if(this.tg_listen_channel.length===0){
+      this.log.info(
+        'Please configure channels',
+      );
+      return;
+    }
+
     this.cities = this.config.cities.split(',').map((v:string)=>{
       return v.replace(/^\s+|\s+$/g, '');
     });
@@ -104,7 +126,7 @@ export class TelegramPlatform implements DynamicPlatformPlugin {
       this.telegramClient.addEventHandler(this.alertHandler.bind(this),
         new NewMessage({
           incoming: true,
-          fromUsers:[this.tg_listen_channel],
+          fromUsers:this.tg_listen_channel,
         }),
       );
     } catch (error) {
@@ -123,11 +145,33 @@ export class TelegramPlatform implements DynamicPlatformPlugin {
   configureAccessory(accessory: PlatformAccessory) {
     this.log.info('Loading accessory from cache:', accessory.displayName);
     if(accessory.UUID !== this.telegramSessionAccessoryUUID){
-    accessory.getService(this.api.hap.Service.MotionSensor)!.updateCharacteristic(this.Characteristic.MotionDetected, 0);
+      /* Reconfigure exists before 2.3.0 version services */
+      accessory.services=accessory.services.map((service)=>{
+        if(service.displayName===`${accessory.displayName} alerts` && !service.subtype){
+          service.subtype = 'rockets';
+        }
+        return service;
+      });
+      /* Reconfigure exists before 2.3.0 version services */
+
+      if(!accessory.getService('rockets')){
+        accessory.addService(this.api.hap.Service.MotionSensor, `${accessory.displayName} alerts`, 'rockets');
+      }else{
+        accessory.getService('rockets')!.setCharacteristic(this.Characteristic.MotionDetected, 0);
+
+      }
+      if(!accessory.getService('terror')){
+        accessory.addService(this.api.hap.Service.MotionSensor, `${accessory.displayName} terror`, 'terror');
+      }else{
+        accessory.getService('terror')!.setCharacteristic(this.Characteristic.MotionDetected, 0);
+
+      }
     }
 
     this.accessories.push(accessory);
   }
+
+
 
   discoverDevices() {
     for (let i=0; i< this.cities.length;i++){
@@ -135,12 +179,12 @@ export class TelegramPlatform implements DynamicPlatformPlugin {
       const uuid = this.api.hap.uuid.generate(`${city}_${this.name}`);
       if (!this.accessories.find(accessory => accessory.UUID === uuid)) {
         const accessory = new this.api.platformAccessory(city, uuid);
-        accessory.addService(this.api.hap.Service.MotionSensor, `${city} alerts`);
-        this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
 
+        this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
         this.configureAccessory(accessory);
       }
     }
+
     let telegramSessionAccessory = this.accessories.find(accessory => accessory.UUID === this.telegramSessionAccessoryUUID);
     if (!telegramSessionAccessory) {
       telegramSessionAccessory = new this.api.platformAccessory('Telegram Connection', this.telegramSessionAccessoryUUID);
@@ -162,17 +206,23 @@ export class TelegramPlatform implements DynamicPlatformPlugin {
 
   alertHandler(event){
     const message = event.message.text;
+    const channel = event.message.chat.username;
     for (let i=0; i< this.cities.length;i++){
-      const city = this.cities[i];
+      try{
+        const city = this.cities[i];
 
-      if(message.includes(city)) {
-        const uuid = this.api.hap.uuid.generate(`${city}_${this.name}`);
-        const accessory = this.accessories.find(accessory => accessory.UUID === uuid);
-      accessory?.getService(this.api.hap.Service.MotionSensor)!.updateCharacteristic(this.Characteristic.MotionDetected, 1);
+        if(message.includes(city)) {
+          const uuid = this.api.hap.uuid.generate(`${city}_${this.name}`);
+          const accessory = this.accessories.find(accessory => accessory.UUID === uuid);
 
-      setTimeout(()=>{
-        accessory?.getService(this.api.hap.Service.MotionSensor)!.updateCharacteristic(this.Characteristic.MotionDetected, 0);
-      }, 30000);
+          accessory?.getService(this.channel_types[channel]!)!.updateCharacteristic(this.Characteristic.MotionDetected, 1);
+
+          setTimeout(()=>{
+          accessory?.getService(this.channel_types[channel]!)!.updateCharacteristic(this.Characteristic.MotionDetected, 0);
+          }, 30000);
+        }
+      }catch(err){
+        this.log.debug(`${err}`);
       }
     }
   }

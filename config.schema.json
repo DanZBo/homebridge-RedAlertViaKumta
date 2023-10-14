@@ -23,7 +23,23 @@
           "type": "string",
           "required": true,
           "default": "YOUR_API_HASH"
-      }
+      },
+      "rockets_alerts_channel":{
+          "title": "Rockets Alerts - user must subscribe first to the channel",
+          "type": "string",
+          "required": true,
+          "default": "https://t.me/CumtaAlertsChannel",
+          "pattern": "^https://t\\.me/[A-Za-z0-9]+$$"
+
+      },
+      "terror_alerts_channel":{
+        "title": "Terror Alerts - user must subscribe first to the channel",
+        "type": "string",
+        "required": true,
+        "default": "https://t.me/CumtaAlerts2Channel",
+        "pattern": "^https://t\\.me/[A-Za-z0-9]+$"
+
+    }
     }
 
   }
