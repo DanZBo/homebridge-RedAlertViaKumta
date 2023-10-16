@@ -28,29 +28,43 @@ export class TelegramPlatform implements DynamicPlatformPlugin {
     public readonly api: API,
   ) {
     this.name = 'RedAlertViaKumta';
-    this.log.debug('Finished initializing platform:', this.name);
 
     this.tg_listen_channel = [];
     this.telegramSessionAccessoryUUID =this.api.hap.uuid.generate('tgSession');
     this.cities = [];
     this.telegramClient;
     this.channel_types = { };
-    this.debug=false;
+    this.debug = config.debug || false;
+    process.on('unhandledRejection', (reason)=>{
+      this.log.error(`${reason}`);
+    });
+
+    this.log['easyDebug']= (...content) => {
+      if (this.debug) {
+        this.log.info(content.reduce((previous, current) => {
+          return previous + ' ' + current;
+        }));
+      } else {
+        this.log.debug(content.reduce((previous, current) => {
+          return previous + ' ' + current;
+        }));
+      }
+    };
     if (!this.config.cities || !this.config.tg_api_id || !this.config.tg_api_hash) {
-      this.log.info(
-        'No options found in configuration file, disabling plugin.',
+      this.log.error(
+        'No options found in configuration file, disabling plugin.  If you updated plugin try to open plugin settings and click save button',
       );
       return;
     }
     if(this.config.cities ==='אזור_פיקוד_העורף_בעברית') {
-      this.log.info(
-        'Cities not configured',
+      this.log.error(
+        'Cities not configured in configuration file, disabling plugin. Try to open plugin settings and configure cities again',
       );
       return;
     }
     if(this.config.tg_api_id==='YOUR_API_ID' || this.config.tg_api_hash==='YOUR_API_HASH'){
-      this.log.info(
-        'Telegram API credentionals is wrong',
+      this.log.error(
+        'Telegram API credentionals is wrong in configuration file, disabling plugin.  Try to open plugin settings and configure Telegram API credentionals again',
       );
       return;
     }
@@ -65,8 +79,8 @@ export class TelegramPlatform implements DynamicPlatformPlugin {
       this.channel_types[channelName] = 'terror';
     }
     if(this.tg_listen_channel.length===0){
-      this.log.info(
-        'Please configure channels',
+      this.log.error(
+        'No any channel found in configuration file, disabling plugin. If you updated plugin try to open plugin settings and click save button',
       );
       return;
     }
@@ -74,24 +88,8 @@ export class TelegramPlatform implements DynamicPlatformPlugin {
     this.cities = this.config.cities.split(',').map((v:string)=>{
       return v.replace(/^\s+|\s+$/g, '');
     });
-    this.debug = config.debug || false;
+    this.log['easyDebug']('Finished initializing platform:', this.name);
 
-
-    this.log['easyDebug']= (...content) => {
-      if (this.debug) {
-        this.log.info(content.reduce((previous, current) => {
-          return previous + ' ' + current;
-        }));
-      } else {
-        this.log.debug(content.reduce((previous, current) => {
-          return previous + ' ' + current;
-        }));
-      }
-    };
-
-    process.on('unhandledRejection', (reason)=>{
-      this.log.error(`${reason}`);
-    });
     this.api.on('didFinishLaunching', () => {
       this.log['easyDebug']('Executed didFinishLaunching callback');
       this.discoverDevices();
@@ -179,32 +177,36 @@ export class TelegramPlatform implements DynamicPlatformPlugin {
   }
 
   configureAccessory(accessory: PlatformAccessory) {
-    this.log.info('Loading accessory from cache:', accessory.displayName);
-    if(accessory.UUID !== this.telegramSessionAccessoryUUID){
+    try{
+      this.log['easyDebug']('Loading accessory from cache:', accessory.displayName);
+      if(accessory.UUID !== this.telegramSessionAccessoryUUID){
       /* Reconfigure exists before 2.3.0 version services */
-      accessory.services=accessory.services.map((service)=>{
-        if(service.displayName===`${accessory.displayName} alerts` && !service.subtype){
-          service.subtype = 'rockets';
-        }
-        return service;
-      });
-      /* Reconfigure exists before 2.3.0 version services */
+        accessory.services=accessory.services.map((service)=>{
+          if(service.displayName===`${accessory.displayName} alerts` && !service.subtype){
+            service.subtype = 'rockets';
+          }
+          return service;
+        });
+        /* Reconfigure exists before 2.3.0 version services */
 
-      if(!accessory.getService('rockets')){
-        accessory.addService(this.api.hap.Service.MotionSensor, `${accessory.displayName} alerts`, 'rockets');
-      }else{
+        if(!accessory.getService('rockets')){
+          accessory.addService(this.api.hap.Service.MotionSensor, `${accessory.displayName} alerts`, 'rockets');
+        }else{
         accessory.getService('rockets')!.setCharacteristic(this.Characteristic.MotionDetected, 0);
-      }
+        }
 
-      if(!accessory.getService('terror')){
-        accessory.addService(this.api.hap.Service.MotionSensor, `${accessory.displayName} terror`, 'terror');
-      }else{
+        if(!accessory.getService('terror')){
+          accessory.addService(this.api.hap.Service.MotionSensor, `${accessory.displayName} terror`, 'terror');
+        }else{
         accessory.getService('terror')!.setCharacteristic(this.Characteristic.MotionDetected, 0);
+        }
       }
-    }
 
-    this.accessories.push(accessory);
-    this.log['easyDebug']('Accessories configured successfully');
+      this.accessories.push(accessory);
+      this.log['easyDebug']('Accessory configured successfully');
+    }catch(error){
+      this.log.error(`${error}`);
+    }
 
   }
 
