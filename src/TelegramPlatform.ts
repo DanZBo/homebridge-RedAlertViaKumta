@@ -21,6 +21,7 @@ export class TelegramPlatform implements DynamicPlatformPlugin {
   public cities: Array<string> ;
   public name: string ;
   public channel_types:ChannelTypes;
+  public debug: boolean;
   constructor(
     public readonly log: Logger,
     public readonly config: PlatformConfig,
@@ -34,6 +35,7 @@ export class TelegramPlatform implements DynamicPlatformPlugin {
     this.cities = [];
     this.telegramClient;
     this.channel_types = { };
+    this.debug=false;
     if (!this.config.cities || !this.config.tg_api_id || !this.config.tg_api_hash) {
       this.log.info(
         'No options found in configuration file, disabling plugin.',
@@ -72,12 +74,26 @@ export class TelegramPlatform implements DynamicPlatformPlugin {
     this.cities = this.config.cities.split(',').map((v:string)=>{
       return v.replace(/^\s+|\s+$/g, '');
     });
+    this.debug = config.debug || false;
+
+
+    this.log['easyDebug']= (...content) => {
+      if (this.debug) {
+        this.log.info(content.reduce((previous, current) => {
+          return previous + ' ' + current;
+        }));
+      } else {
+        this.log.debug(content.reduce((previous, current) => {
+          return previous + ' ' + current;
+        }));
+      }
+    };
 
     process.on('unhandledRejection', (reason)=>{
       this.log.error(`${reason}`);
     });
     this.api.on('didFinishLaunching', () => {
-      this.log.debug('Executed didFinishLaunching callback');
+      this.log['easyDebug']('Executed didFinishLaunching callback');
       this.discoverDevices();
     });
 
@@ -178,17 +194,18 @@ export class TelegramPlatform implements DynamicPlatformPlugin {
         accessory.addService(this.api.hap.Service.MotionSensor, `${accessory.displayName} alerts`, 'rockets');
       }else{
         accessory.getService('rockets')!.setCharacteristic(this.Characteristic.MotionDetected, 0);
-
       }
+
       if(!accessory.getService('terror')){
         accessory.addService(this.api.hap.Service.MotionSensor, `${accessory.displayName} terror`, 'terror');
       }else{
         accessory.getService('terror')!.setCharacteristic(this.Characteristic.MotionDetected, 0);
-
       }
     }
 
     this.accessories.push(accessory);
+    this.log['easyDebug']('Accessories configured successfully');
+
   }
 
 
@@ -227,6 +244,8 @@ export class TelegramPlatform implements DynamicPlatformPlugin {
   alertHandler(event){
     const message = event.message.text;
     const channel = event.message.chat.username;
+    this.log['easyDebug'](`\nGOT MESSAGE: \n${message}\nFROM: ${channel}\n`);
+
     for (let i=0; i< this.cities.length;i++){
       try{
         const city = this.cities[i];
@@ -236,13 +255,17 @@ export class TelegramPlatform implements DynamicPlatformPlugin {
           const accessory = this.accessories.find(accessory => accessory.UUID === uuid);
 
           accessory?.getService(this.channel_types[channel]!)!.updateCharacteristic(this.Characteristic.MotionDetected, 1);
+          this.log['easyDebug'](`City: ${city} was triggered. Type: ${this.channel_types[channel]}`);
 
           setTimeout(()=>{
           accessory?.getService(this.channel_types[channel]!)!.updateCharacteristic(this.Characteristic.MotionDetected, 0);
           }, 30000);
+        }else{
+          this.log['easyDebug'](`Alert message not include information about ${city} any attacks`);
         }
+
       }catch(err){
-        this.log.debug(`${err}`);
+        this.log['easyDebug'](`${err}`);
       }
     }
   }

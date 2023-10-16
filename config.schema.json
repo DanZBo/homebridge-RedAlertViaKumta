@@ -39,7 +39,14 @@
         "default": "https://t.me/CumtaAlerts2Channel",
         "pattern": "^https://t\\.me/[A-Za-z0-9]+$"
 
-    }
+    },
+    "debug": {
+      "title": "Enable Debug Logs",
+      "description": "When checked, the plugin will produce extra logs for debugging purposes",
+      "type": "boolean",
+      "default": false,
+      "required": false
+  }
     }
 
   }
