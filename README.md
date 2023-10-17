@@ -110,4 +110,7 @@ See the sample-config.file to see an example of working accessory. Following, al
  * ```cities``` The name of the cities separated by comma (for example: city1, city2). IN HEBREW! 
  * ```tg_api_id``` Telegram client api id.
  * ```tg_api_hash``` Telegram client api hash.
+ * ```rockets_alerts_channel``` link to telegram channel for rocket attack alerts (default is https://t.me/CumtaAlertsChannel).Can be customizated to any needed like you want.
+ * ```terror_alerts_channel```  link to telegram channel for terror attack alerts (default is https://t.me/CumtaAlerts2Channel). Can be customizated to any needed like you want.
+ * ```debug``` enable/disable debug plugin mode (will show more logs). default is false
 

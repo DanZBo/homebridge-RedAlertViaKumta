@@ -23,7 +23,10 @@
     "prepublishOnly": "npm run lint && npm run build"
   },
   "keywords": [
-    "homebridge-plugin"
+    "homebridge-plugin",
+    "redAlert",
+    "red alert",
+    "telegram"
   ],
   "dependencies": {
     "homebridge-lib": "^6.6.1",
