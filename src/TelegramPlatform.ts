@@ -103,6 +103,10 @@ export class TelegramPlatform implements DynamicPlatformPlugin {
         return v.UUID===this.telegramSessionAccessoryUUID;
       });
       const tgSession = (!tgSessionAccessory)?'':tgSessionAccessory.context.tgSession || '';
+
+      this.log['easyDebug'](`${tgSession!==''? 'Telegram session was loaded from cache':'Telegram session not found in cache'}`);
+
+
       this.stringSession = new sessions.StringSession(tgSession);
       this.telegramClient = new TelegramClient(this.stringSession, Number(this.config.tg_api_id), this.config.tg_api_hash, {});
 
@@ -114,6 +118,11 @@ export class TelegramPlatform implements DynamicPlatformPlugin {
 
 
       if (!(await this.telegramClient.checkAuthorization())) {
+        if(tgSession!==''){
+          this.log['easyDebug']('Telegram session was loaded from cache but authorization failed. Please check your telegram maybe you need some confirmations');
+        }else{
+          this.log['easyDebug']('Telegram session was not found in cache');
+        }
         await this.telegramClient.signInUserWithQrCode(
           {apiId: Number(this.config.tg_api_id), apiHash:this.config.tg_api_hash },
           {
@@ -132,7 +141,11 @@ export class TelegramPlatform implements DynamicPlatformPlugin {
           },
         );
         if(tgSessionAccessory){
+          this.log['easyDebug']('Telegram session was save to cache');
+
           tgSessionAccessory.context.tgSession =this.stringSession.save();
+        }else{
+          this.log['easyDebug']('Failed to save telegram session because accessory not found');
         }
       }
 
@@ -170,6 +183,8 @@ export class TelegramPlatform implements DynamicPlatformPlugin {
   }
 
   async hearbeatTelegramSession() {
+    //   this.log['easyDebug']('TELEGRAM HEARBEATING (EVERY 60000ms)');
+
     setTimeout(this.hearbeatTelegramSession.bind(this), 60000);
     return this.telegramClient.getMe().catch((error)=>{
       this.log.error(`${error}`);
