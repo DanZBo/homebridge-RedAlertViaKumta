@@ -12,44 +12,46 @@
         "required": true,
         "default": "אזור_פיקוד_העורף_בעברית"
       },
-        "tg_api_id": {
-          "title": "Telegram API Id (Please read readme file from git repository for more information)",
-          "type": "string",
-          "required": true,
-          "default": "YOUR_API_ID"
-        },
-        "tg_api_hash":{
-          "title": "Telegram API Hash (Please read readme file from git repository for more information)",
-          "type": "string",
-          "required": true,
-          "default": "YOUR_API_HASH"
+      "tg_api_id": {
+        "title": "Telegram API Id (Please read readme file from git repository for more information)",
+        "type": "string",
+        "required": true,
+        "default": "YOUR_API_ID"
       },
-      "rockets_alerts_channel":{
-          "title": "Rockets Alerts - user must subscribe first to the channel",
-          "type": "string",
-          "required": true,
-          "default": "https://t.me/CumtaAlertsChannel",
-          "pattern": "^https://t\\.me/[A-Za-z0-9]+$$"
-
+      "tg_api_hash": {
+        "title": "Telegram API Hash (Please read readme file from git repository for more information)",
+        "type": "string",
+        "required": true,
+        "default": "YOUR_API_HASH"
       },
-      "terror_alerts_channel":{
+      "rockets_alerts_channel": {
+        "title": "Rockets Alerts - user must subscribe first to the channel",
+        "type": "string",
+        "required": true,
+        "default": "https://t.me/CumtaAlertsChannel",
+        "pattern": "^https://t\\.me/[A-Za-z0-9]+$$"
+      },
+      "terror_alerts_channel": {
         "title": "Terror Alerts - user must subscribe first to the channel",
         "type": "string",
         "required": true,
         "default": "https://t.me/CumtaAlerts2Channel",
         "pattern": "^https://t\\.me/[A-Za-z0-9]+$"
-
-    },
-    "debug": {
-      "title": "Enable Debug Logs",
-      "description": "When checked, the plugin will produce extra logs for debugging purposes",
-      "type": "boolean",
-      "default": false,
-      "required": false
-  }
+      },
+      "debug": {
+        "title": "Enable Debug Logs",
+        "description": "When checked, the plugin will produce extra logs for debugging purposes",
+        "type": "boolean",
+        "default": false,
+        "required": false
+      },
+      "timeout": {
+        "title": "Timeout in seconds",
+        "description": "Timeout during which sensor continue ON state after motion detect and duplicated alerts will be reject.\n\n(In some case, telegram message is deleted and re-sent with updated cities under attack, this can cause duplicate alerts, to avoid it, u can Ignore telegram messages for x seconds (keep in mind it is not recommended to set the value above 10 seconds at this stage because of the risk to miss 2nd alert to your area)",
+        "type": "number",
+        "required": false,
+        "default": "7"
+      }
     }
-
   }
 }
-
-

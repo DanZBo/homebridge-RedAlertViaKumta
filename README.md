@@ -113,4 +113,5 @@ See the sample-config.file to see an example of working accessory. Following, al
  * ```rockets_alerts_channel``` link to telegram channel for rocket attack alerts (default is https://t.me/CumtaAlertsChannel).Can be customizated to any needed like you want.
  * ```terror_alerts_channel```  link to telegram channel for terror attack alerts (default is https://t.me/CumtaAlerts2Channel). Can be customizated to any needed like you want.
  * ```debug``` enable/disable debug plugin mode (will show more logs). default is false
+ * ```timeout``` motion active timeout. default is 7 seconds. recommend 7 seconds
 

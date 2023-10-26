@@ -3,6 +3,9 @@ import { PLATFORM_NAME, PLUGIN_NAME } from './settings';
 import { TelegramClient, sessions } from 'telegram';
 import qrcode from 'qrcode-terminal';
 import {NewMessage} from 'telegram/events/index.js';
+import { EditedMessage } from 'telegram/events/EditedMessage';
+
+
 
 interface ChannelTypes{
   [key: string]: string | undefined;
@@ -13,15 +16,17 @@ export class TelegramPlatform implements DynamicPlatformPlugin {
   public readonly Characteristic: typeof Characteristic = this.api.hap.Characteristic;
   // this is used to track restored cached accessories
   public readonly accessories: PlatformAccessory[] = [];
-  public readonly services: any;
-  public telegramClient: any;
-  public telegramSessionAccessoryUUID: string ;
-  public stringSession: any;
-  public tg_listen_channel: Array<string> ;
-  public cities: Array<string> ;
-  public name: string ;
-  public channel_types:ChannelTypes;
-  public debug: boolean;
+  private telegramClient: any;
+  private telegramSessionAccessoryUUID: string ;
+  private stringSession: any;
+  private tg_listen_channel: Array<string> ;
+  private cities: Array<string> ;
+  private name: string ;
+  private channel_types:ChannelTypes;
+  private debug: boolean;
+  private last_message: ChannelTypes;
+  private timeout: number;
+
   constructor(
     public readonly log: Logger,
     public readonly config: PlatformConfig,
@@ -34,6 +39,8 @@ export class TelegramPlatform implements DynamicPlatformPlugin {
     this.cities = [];
     this.telegramClient;
     this.channel_types = { };
+    this.last_message ={};
+    this.timeout = 10000;
     this.debug = config.debug || false;
     process.on('unhandledRejection', (reason)=>{
       this.log.error(`${reason}`);
@@ -84,7 +91,9 @@ export class TelegramPlatform implements DynamicPlatformPlugin {
       );
       return;
     }
-
+    if(this.config.timeout){
+      this.timeout= this.config.timeout *1000;
+    }
     this.cities = this.config.cities.split(',').map((v:string)=>{
       return v.replace(/^\s+|\s+$/g, '');
     });
@@ -155,6 +164,12 @@ export class TelegramPlatform implements DynamicPlatformPlugin {
       setInterval(this.updateTelegramAccessoryState.bind(this), 3000);
       this.telegramClient.addEventHandler(this.alertHandler.bind(this),
         new NewMessage({
+          incoming: true,
+          fromUsers:this.tg_listen_channel,
+        }),
+      );
+      this.telegramClient.addEventHandler(this.alertHandler.bind(this),
+        new EditedMessage({
           incoming: true,
           fromUsers:this.tg_listen_channel,
         }),
@@ -261,7 +276,19 @@ export class TelegramPlatform implements DynamicPlatformPlugin {
   alertHandler(event){
     const message = event.message.text;
     const channel = event.message.chat.username;
-    this.log['easyDebug'](`\nGOT MESSAGE: \n${message}\nFROM: ${channel}\n`);
+    const class_name = event.originalUpdate.className;
+    const message_id = event.originalUpdate.message.id;
+    if(class_name === 'UpdateNewChannelMessage'){
+      this.log['easyDebug'](`\nGOT NEW MESSAGE: \n${message}\nFROM: ${channel}\n`);
+      this.last_message[channel] = message_id;
+    }else{
+      if(this.last_message[channel]&&this.last_message[channel]===message_id){
+        this.log['easyDebug'](`\nGOT UPDATED MESSAGE: \n${message}\nFROM: ${channel}\n`);
+      }else{
+        this.log['easyDebug'](`\nREJECTED MESSAGE UPDATE: \n${message}\nFROM: ${channel}\n`);
+        return;
+      }
+    }
 
     for (let i=0; i< this.cities.length;i++){
       try{
@@ -270,13 +297,16 @@ export class TelegramPlatform implements DynamicPlatformPlugin {
         if(message.includes(city)) {
           const uuid = this.api.hap.uuid.generate(`${city}_${this.name}`);
           const accessory = this.accessories.find(accessory => accessory.UUID === uuid);
-
+          if(accessory?.getService(this.channel_types[channel]!)!.getCharacteristic(this.Characteristic.MotionDetected)?.value){
+            this.log['easyDebug'](`\nCity: ${city} was not triggered because it was trigger less than 30 sec ago\n`);
+            continue;
+          }
           accessory?.getService(this.channel_types[channel]!)!.updateCharacteristic(this.Characteristic.MotionDetected, 1);
           this.log['easyDebug'](`City: ${city} was triggered. Type: ${this.channel_types[channel]}`);
 
           setTimeout(()=>{
           accessory?.getService(this.channel_types[channel]!)!.updateCharacteristic(this.Characteristic.MotionDetected, 0);
-          }, 30000);
+          }, this.timeout);
         }else{
           this.log['easyDebug'](`Alert message not include information about ${city} any attacks`);
         }
