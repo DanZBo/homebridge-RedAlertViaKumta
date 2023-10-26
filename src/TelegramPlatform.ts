@@ -298,7 +298,7 @@ export class TelegramPlatform implements DynamicPlatformPlugin {
           const uuid = this.api.hap.uuid.generate(`${city}_${this.name}`);
           const accessory = this.accessories.find(accessory => accessory.UUID === uuid);
           if(accessory?.getService(this.channel_types[channel]!)!.getCharacteristic(this.Characteristic.MotionDetected)?.value){
-            this.log['easyDebug'](`\nCity: ${city} was not triggered because it was trigger less than 30 sec ago\n`);
+            this.log['easyDebug'](`\nCity: ${city} was not triggered because it was trigger less than ${this.timeout/1000} sec ago\n`);
             continue;
           }
           accessory?.getService(this.channel_types[channel]!)!.updateCharacteristic(this.Characteristic.MotionDetected, 1);
